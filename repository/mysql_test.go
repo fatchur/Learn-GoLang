@@ -36,7 +36,7 @@ func (mysqlObj *Products) GetResult(rows *sql.Rows, flag *string) error {
 	if *flag == "product" {
 		for rows.Next() {
 			fmt.Println("-----")
-			err := rows.Scan(&name, &description, &image, &logoId)
+			err := rows.Scan(&name, &description, &image, &logoId, &createdAt, &updatedAt)
 			if err != nil {
 				log.Println("Error in scanning DB", err)
 				return err
@@ -70,15 +70,17 @@ func (mysqlObj *Products) GetResult(rows *sql.Rows, flag *string) error {
 }
 
 func TestRowToStructs(t *testing.T) {
-	db, err := sql.Open("mysql", "admin:Makanminum12!@tcp(database-1.c34lvauhheed.us-east-1.rds.amazonaws.com:3306)/sourcesage")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer db.Close()
-
+	dbType := "mysql"
+	dbUsername := "admin"
+	dbPassword := "Makanminum12!"
+	dbHost := "database-1.c34lvauhheed.us-east-1.rds.amazonaws.com:3306"
+	dbDatabase := "sourcesage"
+	query := `SELECT name, description, images, logoId, createdAt, updatedAt FROM sourcesage.Products Where id=1`
 	tmp := CreateMysqlObj()
 	flag := "product"
 
-	MysqlDoQuery(tmp, &flag)
+	MysqlGet(&dbType, &dbUsername, &dbPassword,
+		&dbHost, &dbDatabase,
+		&query, tmp, &flag)
 	fmt.Println(*tmp)
 }

@@ -2,8 +2,11 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type Products struct {
@@ -16,19 +19,51 @@ type Products struct {
 	UpdatedAt   time.Time `json:"updatedAt" orm:"updatedAt"`
 }
 
-func CreateMysqlObj() *Products {
+func CreateProducts() *Products {
 	return &Products{}
 }
 
-func (mysqlObj *Products) GetResult(rows *sql.Rows, flag *string) {
-	if *flag == "product" {
+func (mysqlObj *Products) GetResult(rows *sql.Rows, flagTable *string) error {
+	var id sql.NullInt32
+	var name sql.NullString
+	var description sql.NullString
+	var image sql.NullString
+	var logoId sql.NullString
+	var createdAt sql.NullTime
+	var updatedAt sql.NullTime
+
+	if *flagTable == "product" {
 		for rows.Next() {
-			err := rows.Scan(&mysqlObj.Description)
+			fmt.Println("-----")
+			err := rows.Scan(&id, &name, &description, &image, &logoId)
 			if err != nil {
-				log.Fatal(err)
+				log.Println("Error in scanning DB", err)
+				return err
+			}
+			if id.Valid {
+				mysqlObj.Id = int(id.Int32)
+			}
+			if name.Valid {
+				mysqlObj.Name = name.String
+			}
+			if description.Valid {
+				mysqlObj.Description = description.String
+			}
+			if image.Valid {
+				mysqlObj.Images = image.String
+			}
+			if logoId.Valid {
+				mysqlObj.LogoId = logoId.String
+			}
+			if createdAt.Valid {
+				mysqlObj.CreatedAt = createdAt.Time
+			}
+			if updatedAt.Valid {
+				mysqlObj.UpdatedAt = updatedAt.Time
 			}
 		}
 		// be careful deferring Queries if you are using transactions
 		defer rows.Close()
 	}
+	return nil
 }
