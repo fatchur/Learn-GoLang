@@ -16,6 +16,7 @@ message GreetResponse {
 service GreetService {
     rpc Greet (GreetRequest) returns (GreetResponse);
     rpc Sum(SumRequest) returns (SumResponse);
+    rpc GreetWithDeadline(GreetRequest) returns (GreetResponse);
 }
     
 

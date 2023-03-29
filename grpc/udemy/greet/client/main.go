@@ -20,5 +20,5 @@ func main() {
 	c := pb.NewGreetServiceClient(conn)
 	doGreet(c)
 	doSum(c)
-
+	doGreetWithDeadline(c)
 }
