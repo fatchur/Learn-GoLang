@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GreetServiceClient interface {
 	Greet(ctx context.Context, in *GreetRequest, opts ...grpc.CallOption) (*GreetResponse, error)
+	Sum(ctx context.Context, in *SumRequest, opts ...grpc.CallOption) (*SumResponse, error)
 }
 
 type greetServiceClient struct {
@@ -42,11 +43,21 @@ func (c *greetServiceClient) Greet(ctx context.Context, in *GreetRequest, opts .
 	return out, nil
 }
 
+func (c *greetServiceClient) Sum(ctx context.Context, in *SumRequest, opts ...grpc.CallOption) (*SumResponse, error) {
+	out := new(SumResponse)
+	err := c.cc.Invoke(ctx, "/greet.GreetService/Sum", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GreetServiceServer is the server API for GreetService service.
 // All implementations must embed UnimplementedGreetServiceServer
 // for forward compatibility
 type GreetServiceServer interface {
 	Greet(context.Context, *GreetRequest) (*GreetResponse, error)
+	Sum(context.Context, *SumRequest) (*SumResponse, error)
 	mustEmbedUnimplementedGreetServiceServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedGreetServiceServer struct {
 
 func (UnimplementedGreetServiceServer) Greet(context.Context, *GreetRequest) (*GreetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Greet not implemented")
+}
+func (UnimplementedGreetServiceServer) Sum(context.Context, *SumRequest) (*SumResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Sum not implemented")
 }
 func (UnimplementedGreetServiceServer) mustEmbedUnimplementedGreetServiceServer() {}
 
@@ -88,6 +102,24 @@ func _GreetService_Greet_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GreetService_Sum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SumRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreetServiceServer).Sum(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greet.GreetService/Sum",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreetServiceServer).Sum(ctx, req.(*SumRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GreetService_ServiceDesc is the grpc.ServiceDesc for GreetService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -99,91 +131,9 @@ var GreetService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Greet",
 			Handler:    _GreetService_Greet_Handler,
 		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "greet.proto",
-}
-
-// GreetSumServiceClient is the client API for GreetSumService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type GreetSumServiceClient interface {
-	GreetSum(ctx context.Context, in *GreetSumRequest, opts ...grpc.CallOption) (*GreetSumResponse, error)
-}
-
-type greetSumServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewGreetSumServiceClient(cc grpc.ClientConnInterface) GreetSumServiceClient {
-	return &greetSumServiceClient{cc}
-}
-
-func (c *greetSumServiceClient) GreetSum(ctx context.Context, in *GreetSumRequest, opts ...grpc.CallOption) (*GreetSumResponse, error) {
-	out := new(GreetSumResponse)
-	err := c.cc.Invoke(ctx, "/greet.GreetSumService/GreetSum", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// GreetSumServiceServer is the server API for GreetSumService service.
-// All implementations must embed UnimplementedGreetSumServiceServer
-// for forward compatibility
-type GreetSumServiceServer interface {
-	GreetSum(context.Context, *GreetSumRequest) (*GreetSumResponse, error)
-	mustEmbedUnimplementedGreetSumServiceServer()
-}
-
-// UnimplementedGreetSumServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedGreetSumServiceServer struct {
-}
-
-func (UnimplementedGreetSumServiceServer) GreetSum(context.Context, *GreetSumRequest) (*GreetSumResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GreetSum not implemented")
-}
-func (UnimplementedGreetSumServiceServer) mustEmbedUnimplementedGreetSumServiceServer() {}
-
-// UnsafeGreetSumServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GreetSumServiceServer will
-// result in compilation errors.
-type UnsafeGreetSumServiceServer interface {
-	mustEmbedUnimplementedGreetSumServiceServer()
-}
-
-func RegisterGreetSumServiceServer(s grpc.ServiceRegistrar, srv GreetSumServiceServer) {
-	s.RegisterService(&GreetSumService_ServiceDesc, srv)
-}
-
-func _GreetSumService_GreetSum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GreetSumRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GreetSumServiceServer).GreetSum(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/greet.GreetSumService/GreetSum",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GreetSumServiceServer).GreetSum(ctx, req.(*GreetSumRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// GreetSumService_ServiceDesc is the grpc.ServiceDesc for GreetSumService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var GreetSumService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "greet.GreetSumService",
-	HandlerType: (*GreetSumServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GreetSum",
-			Handler:    _GreetSumService_GreetSum_Handler,
+			MethodName: "Sum",
+			Handler:    _GreetService_Sum_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
